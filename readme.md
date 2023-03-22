@@ -12,8 +12,8 @@ go run main.go -domain <domain> -network <network> [-domains <domains>] [-timeou
 
 ### Flags
 
-- domain: The domain to query
-- network: The IPv4 network range to query (in CIDR format)
-- domains: Optional comma-separated list of additional domains to query (default is empty)
+- domain: Initial domain to query
+- network: The IPv4 network range to check (in CIDR format)
+- domains: comma-separated list of additional domains to query
 - timeout: Optional timeout for DNS queries in seconds (default is 5)
 - db: Optional SQLite database file name (default is dns.db)
