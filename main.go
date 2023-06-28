@@ -10,6 +10,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
+	ipcipher "github.com/clwg/ip-cipher"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/miekg/dns"
 )
@@ -40,6 +42,13 @@ func main() {
 	dbfile := flag.String("db", "dns.db", "SQLite database file")
 	flag.Parse()
 
+	dictionary, err := ipcipher.BuildDictionary("dictionary.txt")
+
+	if err != nil {
+		fmt.Println("Error building dictionary:", err)
+		return
+	}
+
 	db, err := sqlx.Open("sqlite3", *dbfile)
 	if err != nil {
 		panic(err)
@@ -62,7 +71,10 @@ func main() {
 
 	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
 		msg := dns.Msg{}
-		msg.SetQuestion(dns.Fqdn(*domain), dns.TypeA)
+		var subdomain = ipcipher.EncodeIPAddress(ip, dictionary)
+		var fqdn = fmt.Sprintf("%s.%s", subdomain, *domain)
+		msg.SetQuestion(dns.Fqdn(fqdn), dns.TypeA)
+
 		resp, _, err := client.Exchange(&msg, net.JoinHostPort(ip.String(), "53"))
 		if err != nil {
 			fmt.Printf("query request timeout: %s\n", err)
